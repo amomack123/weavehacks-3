@@ -1,0 +1,970 @@
+IAM overview
+
+This page describes how Google Cloud's Identity and Access Management (IAM) system works and how you can use it to manage access in Google Cloud.
+
+IAM is a tool to manage fine-grained authorization for Google Cloud. In other words, it lets you control who can do what on which resources.
+
+
+
+Access in Google Cloud
+
+Every action in Google Cloud requires certain permissions. When someone tries to perform an action in Google Cloud—for example, create a VM instance or view a dataset—IAM first checks if they have the required permissions. If they don't, then IAM prevents them from performing the action.
+
+Giving someone permissions in IAM involves the following three components:
+
+Principal: The identity of the person or system that you want to give permissions to.
+
+Role: The collection of permissions that you want to give the principal.
+
+Resource: The Google Cloud resource that you want to let the principal access.
+
+To give the principal permission to access the resource, you grant them a role on the resource. You grant these roles using an allow policy.
+
+Allow policies are directly attached to some Google Cloud resources, which are organized hierarchically—for example, projects contain service-specific resources. This means that you can grant access to a single resource or a container of resources.
+
+The following sections describe these concepts in more detail.
+
+
+
+Principals
+
+In Google Cloud you control access for principals. Principals represent one or more identities that have authenticated to Google Cloud.
+
+In the past, principals were referred to as members. Some APIs still use that term.
+
+There are various types of principals in IAM, but they can be divided into two broad categories:
+
+Human users: Some IAM principal types represent human users. You use these principal types for managing your employees' access to Google Cloud resources.
+
+Principal types that represent human users include Google Accounts, Google groups, and federated identities in workforce identity pools.
+
+Workloads: Some IAM principal types represent workloads. You use these principal types when managing your workloads' access to Google Cloud resources.
+
+Principal types that represent workloads include service accounts and federated identities in a workload identity pool.
+
+For more information about principals, see IAM principals.
+
+
+
+Permissions and roles
+
+Permissions determine what operations are allowed on a resource. In IAM, permissions are typically represented in the form service.resource.verb. Often, permissions correspond one-to-one with REST API methods—for example, the resourcemanager.projects.list permission lets you list Resource Manager projects.
+
+You can't directly grant permissions to a principal. Instead, you give principals permissions by granting them roles.
+
+Roles are collections of permissions. When you grant a role to a principal, you give that principal all of the permissions in that role.
+
+There are three types of roles:
+
+Predefined roles: Roles that are managed by Google Cloud services. These roles contain the permissions needed to perform common tasks for each given service. For example, the Pub/Sub Publisher role (roles/pubsub.publisher) provides access to publish messages to a Pub/Sub topic.
+
+Custom roles: Roles that you create that contain only the permissions that you specify. You have complete control over the permissions in these roles. However, they have a higher maintenance burden than predefined roles and there's a limit to the number of custom roles that you can have in your project and in your organization.
+
+Basic roles: Highly permissive roles that provide broad access to Google Cloud services. These roles can be useful for testing purposes, but shouldn't be used in production environments.
+
+For more information about roles and permissions, see Roles and permissions.
+
+Resources
+
+Most Google Cloud services have their own resources. For example, Compute Engine has resources like instances, disks, and subnetworks.
+
+In IAM, you grant roles on a resource. Granting a principal a role on a resource means that the principal can use the permissions in that role to access the resource.
+
+You can grant roles on a subset of Google Cloud resources. For a full list of resources that you can grant roles on, see Resource types that accept allow policies.
+
+Google Cloud also has container resources, including projects, folders, and organizations. These container resources are organized hierarchically, which lets child resources inherit the policies of their parent resources. This means that granting a principal a role on a container resource gives the principal access to both the container resource and the resources in that container. This feature lets you use a single role grant to manage access to multiple resources, including resources that you can't grant roles on directly. For more information, see Policy inheritance on this page.
+
+
+
+Allow policies
+
+You grant roles to principals using allow policies. In the past, these policies were referred to as IAM policies.
+
+An allow policy is a YAML or JSON object that's attached to a Google Cloud resource.
+
+The following diagram shows how an allow policy is structured:
+
+
+
+Each allow policy contains a list of role bindings that associate IAM roles with the principals who are granted those roles.
+
+When an authenticated principal attempts to access a resource, IAM checks the resource's allow policy to determine whether the principal has the required permissions. If the principal is in a role binding that includes a role with the required permissions, then they're allowed to access the resource.
+
+To see examples of allow policies and learn about their structure, see Understanding allow policies.
+
+
+
+Policy inheritance
+
+Google Cloud has container resources—such as projects, folders, and organizations—that let you organize your resources in a parent-child hierarchy. This hierarchy is called the resource hierarchy.
+
+The Google Cloud resource hierarchy has the following structure:
+
+The organization is the root node in the hierarchy.
+
+Folders are children of the organization, or of another folder.
+
+Projects are children of the organization, or of a folder.
+
+Resources for each service are descendants of projects.
+
+The following diagram is an example of a Google Cloud resource hierarchy:
+
+
+
+If you set an allow policy on a container resource, then the allow policy also applies to all resources in that container. This concept is called policy inheritance, because descendant resources effectively inherit their ancestor resources' allow policies.
+
+Policy inheritance has the following implications:
+
+You can use a single role binding to grant access to multiple resources. If you want to give a principal access to all resources in a container, then grant them a role on the container instead of on the resources in the container.
+
+For example, if you want to let your security administrator manage allow policies for all resources in your organization, then you could grant them the Security Admin role (roles/iam.securityAdmin) on the organization.
+
+You can grant access to resources that don't have their own allow policies. Not all resources accept allow policies, but all resources inherit allow policies from their ancestors. To give a principal access to a resource that can't have its own allow policy, grant them a role on one of the resource's ancestors.
+
+For example, imagine you want to give someone permission to write logs to a log bucket. Log buckets don't have their own allow policies, so to give someone this permission, you can instead grant them the Logs Bucket Writer role (roles/logging.bucketWriter) on the project that contains the log bucket.
+
+To understand who can access a resource, you need to also view all of the allow policies that affect the resource. To get a complete list of the principals that have access to the resource, you need to view the resource's allow policy and the resource's ancestors' allow policies. The union of all of these policies is called the effective allow policy.
+
+For more information about policy inheritance for allow policies, see Using resource hierarchy for access control.
+
+Advanced access control
+
+In addition to allow policies, IAM provides the following access control mechanisms to help you refine who has access to what resources:
+
+Additional policy types: IAM offers the following policy types in addition to allow policies:
+
+Deny policies: Deny policies prevent principals from using certain permissions, even if they're granted a role with the permission.
+
+Principal access boundary (PAB) policies: Principal access boundary policies define and enforce the resources a principal is eligible to access. Principals can't access resources that they're not eligible to access, even if they've been granted a role on the resource.
+
+To learn more about these policies, see Policy types.
+
+IAM Conditions: IAM Conditions lets you define and enforce conditional, attribute-based access control. You can use conditions in various policy types. For example, you can add a condition to a role binding in an allow policy to ensure that the role is only granted if the condition is met.
+
+You can write conditions based on attributes like the resource in the request and the time of the request.
+
+To learn more about IAM Conditions, see Overview of IAM Conditions.
+
+Privileged Access Manager (PAM): With Privileged Access Manager, you can let principals request and be given temporary, auditable access to resources. For example, you could require that principals request access each time they want to view a sensitive resource instead of permanently granting them a IAM role.
+
+You can also configure whether principals are required to provide justifications or get approvals when they request access.
+
+To learn more about Privileged Access Manager, see Privileged Access Manager overview.
+
+Consistency model for the IAM API
+
+The IAM API is eventually consistent. In other words, if you write data with the IAM API, then immediately read that data, the read operation might return an older version of the data. The changes that you make might also take time to affect access checks.
+
+This consistency model affects how the IAM API works. For example, if you create a service account, then immediately refer to that service account in another request, the IAM API might say that the service account couldn't be found. This behavior occurs because operations are eventually consistent; it can take time for the new service account to become visible to read requests.
+
+
+
+
+
+
+
+
+
+Grant an IAM role by using the Google Cloud console
+
+Learn how to use the Google Cloud console to grant IAM roles to principals at the project level.
+
+Note: If you're getting started with Google Cloud, you can grant the appropriate IAM roles to your organization administrator groups as part of the Google Cloud setup process.
+
+See the following video for a quick walkthrough:
+
+
+
+To follow step-by-step guidance for this task directly in the Google Cloud console, click Guide me:
+
+Guide me
+
+Before you begin
+
+Create a Google Cloud project
+
+For this quickstart, you need a new Google Cloud project.
+
+Warning: If you use an existing project, then completing this quickstart will enable some users to access resources in that project.
+
+Ensure that you have the Project Creator IAM role (roles/resourcemanager.projectCreator). Learn how to grant roles.
+
+In the Google Cloud console, go to the project selector page.
+
+Go to project selector
+
+Click Create project.
+
+Name your project. Make a note of your generated project ID.
+
+Edit the other fields as needed.
+
+Click Create.
+
+Ensure that you have the required roles
+
+Make sure that you have the following role or roles on the project: Project IAM Admin
+
+Check for the roles
+
+
+
+Grant the roles
+
+Enable the APIs
+
+Enable the IAM and Resource Manager APIs.
+
+Roles required to enable APIs
+
+
+
+Enable the APIs
+
+Grant an IAM role
+
+Grant a principal the Logs Viewer role on the project.
+
+In the Google Cloud console, go to the IAM page.
+
+Go to IAM
+
+Select your new project.
+
+Click person_add Grant access.
+
+Enter an identifier for the principal. For example, my-user@example.com.
+
+From the Select a role drop-down menu, search for Logs Viewer, then click Logs Viewer.
+
+Click Save.
+
+Verify that the principal and the corresponding role are listed in the IAM page.
+
+You have successfully granted an IAM role to a principal.
+
+Observe the effects of IAM roles
+
+Verify that the principal you granted a role to can access the expected Google Cloud console pages by doing the following:
+
+Send the following URL to the principal to whom you granted the role in the preceding step:
+
+
+
+https://console.cloud.google.com/logs?project=PROJECT_ID
+
+This URL takes the principal to the Logs Explorer page for your project.
+
+Verify that the principal is able to access and view the URL.
+
+If the principal tries to access a different Google Cloud console page that they don't have access to, they see an error message.
+
+
+
+Grant additional roles to the same principal
+
+Grant the principal the Compute Viewer role in addition to their Logs Viewer role.
+
+In the Google Cloud console, go to the IAM page.
+
+Go to IAM
+
+Locate the row that contains the principal to whom you want to grant another role, and click Edit principal edit in that row.
+
+In the Edit permissions pane, click Add another role.
+
+
+
+From the Select a role drop-down menu, search for Compute Viewer, then click Compute Viewer. Click Save.
+
+Click Save.
+
+The principal now has a second IAM role.
+
+
+
+Revoke IAM roles
+
+Revoke the roles you granted to the principal in the preceding steps by doing the following:
+
+Locate the row that contains the principal that you granted roles to and click Edit principal edit in that row.
+
+In the Edit permissions pane, click the delete icon next to the Logs Viewer and Compute Viewer roles.
+
+Click Save.
+
+You have now removed the principal from both of the roles. If they try to view the Logs Explorer page, they see the following error message:
+
+You don't have permissions to view logs.
+
+Clean up
+
+To avoid incurring charges to your Google Cloud account for the resources used on this page, follow these steps.
+
+Clean up by deleting the project that you created for this quickstart.
+
+Caution: Deleting a project has the following effects:Everything in the project is deleted. If you used an existing project for the tasks in this document, when you delete it, you also delete any other work you've done in the project.
+
+Custom project IDs are lost. When you created this project, you might have created a custom project ID that you want to use in the future. To preserve the URLs that use the project ID, such as an appspot.com URL, delete selected resources inside the project instead of deleting the whole project.
+
+If you plan to explore multiple architectures, tutorials, or quickstarts, reusing projects can help you avoid exceeding project quota limits.
+
+In the Google Cloud console, go to the Manage resources page.Go to Manage resources
+
+In the project list, select the project that you want to delete, and then click Delete.
+
+In the dialog, type the project ID, and then click Shut down to delete the project.
+
+
+
+
+
+
+
+Grant roles using client libraries
+
+Learn how to get started with the IAM methods from the Resource Manager API in your favorite programming language.
+
+To follow step-by-step guidance for this task directly in the Google Cloud console, click Guide me:
+
+Guide me
+
+Before you begin
+
+Create a Google Cloud project
+
+For this quickstart, you need a new Google Cloud project.
+
+Warning: If you use an existing project, then completing this quickstart will enable some users to temporarily access resources in that project.
+
+Install the Google Cloud CLI.
+
+If you're using an external identity provider (IdP), you must first sign in to the gcloud CLI with your federated identity.
+
+To initialize the gcloud CLI, run the following command:
+
+
+
+gcloud init
+
+Create or select a Google Cloud project.
+
+Roles required to select or create a project
+
+
+
+Note: If you don't plan to keep the resources that you create in this procedure, create a project instead of selecting an existing project. After you finish these steps, you can delete the project, removing all resources associated with the project.
+
+Create a Google Cloud project:
+
+
+
+gcloud projects create PROJECT_ID
+
+Replace PROJECT_ID with a name for the Google Cloud project you are creating.
+
+Select the Google Cloud project that you created:
+
+
+
+gcloud config set project PROJECT_ID
+
+Replace PROJECT_ID with your Google Cloud project name.
+
+Enable the Resource Manager API:
+
+Roles required to enable APIs
+
+
+
+gcloud services enable cloudresourcemanager.googleapis.com
+
+Create local authentication credentials for your user account:
+
+
+
+gcloud auth application-default login
+
+If an authentication error is returned, and you are using an external identity provider (IdP), confirm that you have signed in to the gcloud CLI with your federated identity.
+
+Grant roles to your user account. Run the following command once for each of the following IAM roles: roles/resourcemanager.projectIamAdmin
+
+
+
+gcloud projects add-iam-policy-binding PROJECT_ID --member="user:USER_IDENTIFIER" --role=ROLE
+
+Replace the following:
+
+PROJECT_ID: Your project ID.
+
+USER_IDENTIFIER: The identifier for your user account. For example, myemail@example.com.
+
+ROLE: The IAM role that you grant to your user account.
+
+Install the client library
+
+C#
+
+Go
+
+Java
+
+Python
+
+For more on setting up your C# development environment, refer to the C# Development Environment Setup Guide.
+
+
+
+install-package Google.Apis.Iam.v1
+
+install-package Google.Apis.CloudResourceManager.v1
+
+Read, modify, and write an allow policy 
+
+The code snippet in this quickstart does the following:
+
+Initializes the Resource Manager service, which manages Google Cloud projects.
+
+Reads the allow policy for your project.
+
+Modifies the allow policy by granting the Log Writer role (roles/logging.logWriter) to your Google Account.
+
+Writes the updated allow policy.
+
+Prints all the principals that have the Log Writer role (roles/logging.logWriter) at the project level.
+
+Revokes the Log Writer role.
+
+Replace the following values before running the code snippet:
+
+your-project: The ID of your project.
+
+your-member: The email address for your user account. For example, user:my-user@example.com.
+
+Note: The following snippet modifies access by getting, modifying, and setting the allow policy for the project. For more information on allow policies, see the IAM overview.
+
+C#
+
+Go
+
+Java
+
+Python
+
+To learn how to install and use the client library for Resource Manager, see Resource Manager client libraries. For more information, see the Resource Manager C# API reference documentation.
+
+To authenticate to Resource Manager, set up Application Default Credentials. For more information, see Set up authentication for a local development environment.
+
+
+
+
+
+using Google.Apis.Auth.OAuth2;using Google.Apis.CloudResourceManager.v1;using Google.Apis.CloudResourceManager.v1.Data;using Google.Apis.Iam.v1;using System;using System.Collections.Generic;using System.Linq;public class QuickStart{    public static void Main(string[] args)    {        // TODO: Replace with your project ID        var projectId = "your-project";        // TODO: Replace with the ID of your principal.        // For examples, see https://cloud.google.com/iam/docs/principal-identifiers        var member = "your-principal";        // Role to be granted        var role = "roles/logging.logWriter";        // Initialize service        CloudResourceManagerService crmService = InitializeService();        // Grant your principal the "Log Writer" role for your project        AddBinding(crmService, projectId, member, role);        // Get the project's policy and print all principals with the the "Log Writer" role        var policy = GetPolicy(crmService, projectId);        var binding = policy.Bindings.FirstOrDefault(x => x.Role == role);        Console.WriteLine("Role: " + binding.Role);        Console.Write("Members: ");        foreach (var m in binding.Members)        {            Console.Write("[" + m + "] ");        }        Console.WriteLine();        // Remove principal from the "Log Writer" role        RemoveMember(crmService, projectId, member, role);    }    public static CloudResourceManagerService InitializeService()    {        // Get credentials        var credential = GoogleCredential.GetApplicationDefault()            .CreateScoped(IamService.Scope.CloudPlatform);        // Create the Cloud Resource Manager service object        CloudResourceManagerService crmService = new CloudResourceManagerService(            new CloudResourceManagerService.Initializer            {                HttpClientInitializer = credential            });        return crmService;    }    public static Policy GetPolicy(CloudResourceManagerService crmService, String projectId)    {        // Get the project's policy by calling the        // Cloud Resource Manager Projects API        var policy = crmService.Projects.GetIamPolicy(            new GetIamPolicyRequest(),            projectId).Execute();        return policy;    }    public static void SetPolicy(CloudResourceManagerService crmService, String projectId, Policy policy)    {        // Set the project's policy by calling the        // Cloud Resource Manager Projects API        crmService.Projects.SetIamPolicy(           new SetIamPolicyRequest           {               Policy = policy           }, projectId).Execute();    }    public static void AddBinding(        CloudResourceManagerService crmService,        string projectId,        string member,        string role)    {        // Get the project's policy        var policy = GetPolicy(crmService, projectId);        // Find binding in policy        var binding = policy.Bindings.FirstOrDefault(x => x.Role == role);        // If binding already exists, add principal to binding        if (binding != null)        {            binding.Members.Add(member);        }        // If binding does not exist, add binding to policy        else        {            binding = new Binding            {                Role = role,                Members = new List<string> { member }            };            policy.Bindings.Add(binding);        }        // Set the updated policy        SetPolicy(crmService, projectId, policy);    }    public static void RemoveMember(        CloudResourceManagerService crmService,        string projectId,        string member,        string role)    {        // Get the project's policy         var policy = GetPolicy(crmService, projectId);        // Remove the principal from the role        var binding = policy.Bindings.FirstOrDefault(x => x.Role == role);        if (binding == null)        {            Console.WriteLine("Role does not exist in policy.");        }        else        {            if (binding.Members.Contains(member))            {                binding.Members.Remove(member);            }            else            {                Console.WriteLine("The member has not been granted this role.");            }            if (binding.Members.Count == 0)            {                policy.Bindings.Remove(binding);            }        }        // Set the updated policy        SetPolicy(crmService, projectId, policy);    }}
+
+Congratulations! You used the IAM methods in the Resource Manager API to modify access for a project.
+
+
+
+
+
+
+
+Identity management for Google Cloud
+
+To use Google Cloud, users and workloads need an identity that Google Cloud can recognize.
+
+This page outlines the methods that you can use to configure identities for users and workloads.
+
+User identities
+
+There are several ways to configure user identities so that Google Cloud can recognize them:
+
+Create Cloud Identity or Google Workspace accounts: Users with Cloud Identity or Google Workspace accounts can authenticate to Google Cloud and be authorized to use Google Cloud resources. Cloud Identity and Google Workspace accounts are user accounts that are managed by your organization.
+
+
+
+Note: Google Workspace accounts may have one or more alternate email addresses (email alias). If you grant a role to a principal's email alias, the role is granted to the primary email instead. It's not possible to grant a role to only the email alias.
+
+Warning: Granting a role to a principal's email alias reveals the primary email.
+
+Set up one of the following federated identity strategies:
+
+Federation using Cloud Identity or Google Workspace: Sync external identities with corresponding Cloud Identity or Google Workspace accounts so that users can sign in to Google services with their external credentials. With this method, users need two accounts: an external account, and a Cloud Identity or Google Workspace account. You can keep these accounts synchronized using a tool like Google Cloud Directory Sync (GCDS).
+
+Workforce Identity Federation: Use your external identity provider (IdP) to sign in your users to Google Cloud and let them access Google Cloud resources and products. With Workforce Identity Federation, users need only one account: their external account. This type of user identity is sometimes referred to as a federated identity.
+
+To learn more about these methods for setting up user identities, see User identities overview.
+
+Workload identities
+
+Google Cloud provides the following types of identity services for workloads:
+
+Workload Identity Federation lets your workloads access most Google Cloud services by using an identity that is provided by an IdP. Workloads that use Workload Identity Federation can run on Google Cloud, Google Kubernetes Engine (GKE), or other platforms, such as AWS, Azure, and GitHub.
+
+Google Cloud service accounts can act as identities for workloads. Instead of granting access to a workload directly, you grant access to a service account, then let the workload use the service account as its identity.
+
+Managed workload identities (Preview) let you bind strongly attested identities to your Compute Engine workloads. You can use managed workload identities to authenticate your workloads to other workloads using mutual TLS (mTLS), but they cannot be used for authenticating to Google Cloud APIs.
+
+The methods that you can use depend on where your workloads are running.
+
+If you're running workloads on Google Cloud, you can use the following methods to configure workload identities:
+
+Workload Identity Federation for GKE: Grant IAM access to GKE clusters and Kubernetes service accounts. Doing so lets the clusters' workloads access most Google Cloud services directly, without using IAM service account impersonation.
+
+Attached service accounts: Attach a service account to a resource so that the service account acts as the resource's default identity. Any workloads running on the resource use the service account's identity when accessing Google Cloud services.
+
+Short-lived service account credentials: Generate and use short-lived service account credentials whenever your resources need to access to Google Cloud services. The most common types of credentials are OAuth 2.0 access tokens and OpenID Connect (OIDC) ID tokens.
+
+If you're running workloads outside of Google Cloud, you can use the following methods to configure workload identities:
+
+Workload Identity Federation: Use credentials from external identity providers to generate short-lived credentials, which workloads can use to temporarily impersonate service accounts. Workloads can then access Google Cloud resources, using the service account as their identity.
+
+Service account keys: Use the private portion of a service account's public/private RSA key pair to authenticate as the service account.
+
+
+
+
+
+
+
+Identities for users
+
+This page describes the ways that you can configure identities for users in your organization so that they can access Google Cloud. It doesn't discuss the identities that your customers use to authenticate to your application. To learn about how to authenticate customers to your application, see the Identity Platform documentation, which discusses customer identity and access management (CIAM).
+
+For users to access Google Cloud, they need an identity that Google Cloud can recognize. There are several ways to configure identities so that Google Cloud can recognize them:
+
+Create Cloud Identity or Google Workspace accounts
+
+Set up one of the following federated identity strategies:Federation using Cloud Identity or Google Workspace
+
+Workforce Identity Federation
+
+Cloud Identity or Google Workspace accounts
+
+You can use Cloud Identity or Google Workspace to create managed user accounts. These accounts are called managed accounts because you control their lifecycle and configuration. Users with these accounts can authenticate to Google Cloud and be authorized to use Google Cloud resources.
+
+Cloud Identity and Google Workspace share a common technical platform. Both products offer similar features for managing users, groups, and authentication.
+
+Only Cloud Identity or Google Workspace managed Super Admin accounts can invite users with unmanaged consumer accounts to transfer their consumer accounts to managed accounts.
+
+To get started with Cloud Identity or Google Workspace, you can do the following:
+
+To learn more about using Cloud Identity and Google Workspace to create identities for your users, see Google for organizations.
+
+Learn how to set up Cloud Identity.
+
+Learn how to set up Google Workspace.
+
+Federated user identities
+
+You can federate identities to allow users to use their existing identity and credentials to sign in to Google services. There are several methods to federate identities in Google Cloud.
+
+Federation using Cloud Identity or Google Workspace
+
+When you federate identities with Cloud Identity or Google Workspace, users aren't prompted to enter a password when they try to access Google services. Instead, you can redirect them to an external identity provider (IdP) to authenticate.
+
+To use this type of identity federation, a user must have an external identity in the external IdP and a corresponding Google Account in Cloud Identity or Google Workspace, typically with the same email address. You can keep these accounts synchronized by using a tool like Google Cloud Directory Sync (GCDS) or by provisioning accounts using an external authoritative source. For example, you could set up account provisioning with Microsoft Entra ID or Active Directory.
+
+To learn more about federation using Cloud Identity or Google Workspace, see Single sign-on.
+
+Workforce Identity Federation
+
+Workforce Identity Federation lets you use an external identity provider (IdP) to authenticate and authorize a workforce—a group of users, such as employees, partners, and contractors—using IAM, so that the users can access Google Cloud services. With Workforce Identity Federation you don't need to synchronize user identities from your existing IdP to Google Cloud identities, as you would with Cloud Identity's Google Cloud Directory Sync (GCDS). Workforce Identity Federation extends Google Cloud's identity capabilities to support syncless, attribute-based single sign-on.
+
+To learn more about Workforce Identity Federation, see Workforce Identity Federation overview.
+
+
+
+
+
+Create and manage Google groups in the Google Cloud console
+
+Google groups can help you manage users at scale. Each member of a Google group inherits the Identity and Access Management (IAM) roles granted to that group. This inheritance means that you can use a group's membership to manage users' roles instead of granting IAM roles to individual users.
+
+Note: You can't add service agents to Google groups unless the external members option is turned on.
+
+You can create and manage groups for your organization in the Google Cloud console.
+
+Required permissions
+
+You need the following permissions to manage groups in the Google Cloud console.
+
+
+
+Group permissions
+
+To create, view, edit, and delete groups, in the Google Cloud console or elsewhere, you need the appropriate group permissions. These permissions are managed by Google Workspace, not IAM. To gain these permissions, contact your Google Workspace administrator.
+
+To learn about group permissions, see Administrator privilege definitions and Set organization-wide policies for using groups.
+
+IAM permissions
+
+To get the permissions that you need to use the Google Cloud console to manage groups, ask your administrator to grant you the following IAM roles on the organization:
+
+Organization Viewer (roles/resourcemanager.organizationViewer)
+
+To view group membership change logs: Logs Viewer (roles/logging.viewer)
+
+For more information about granting roles, see Manage access to projects, folders, and organizations.
+
+You might also be able to get the required permissions through custom roles or other predefined roles.
+
+Viewing groups
+
+To view the Google groups in your organization that you have access to, follow these steps:
+
+In the Google Cloud console, go to the Groups page.
+
+Go to the Groups page
+
+Select the organization whose groups you want to view.
+
+The Google Cloud console displays all the groups in your organization that you can access.
+
+Note: To check whether a group has access to your project and its resources, see Viewing current access.
+
+Creating a group
+
+To create a group, follow these steps:
+
+In the Google Cloud console, go to the Groups page.
+
+Go to the Groups page
+
+Click add_box Create.
+
+Fill in your group's details, including the group's name, email address, and an optional description.
+
+To add members to the group, click add Add member, then enter the member's email and choose their Google Groups role.
+
+
+
+
+
+Best practices for using Google groups
+
+This document describes some best practices for using Google groups to manage access to Google Cloud resources with Identity and Access Management (IAM).
+
+Types of groups
+
+The types of groups listed here are one way to think about, use, and manage Google groups. These group types aren't set by any Google group attribute. However, using these group types in your overall approach to Google group management can help you avoid some common security pitfalls.
+
+This document uses the following types of groups:
+
+Organizational groups
+
+Organizational groups represent subsets of an organization's structure, and are typically sourced from human resources data. They might be based on department, reporting structure, geographic location, or other organizational groupings.
+
+The members of an organizational group change when an employee joins the organization, moves to a different department, or leaves the organization.
+
+The overall structure of organizational groups can change when the business reorganizes. A reorganization might lead to new groups being created, or existing groups being retired.
+
+Some examples of organizational groups include org.marketing-fte, org.finance-all, org.msmith-reports, org.apac-all, and org.summer-interns.
+
+Organizational groups are typically used for email communication.
+
+Collaboration groups
+
+Collaboration groups represent workgroups, project members, or users that want to collaborate on a project or discuss a specific topic.
+
+The structure of collaboration groups isn't linked to any organizational structure. They are often created on an ad hoc, self-service basis.
+
+Membership in collaboration groups can be unrestricted, allowing anybody in the organization to join. Alternatively, a collaboration group can be self-managed, meaning that certain members can decide who else to include in the group.
+
+Some examples of collaboration groups include collab.security-discuss and collab.website-relaunch.
+
+Collaboration groups are typically used for email communication.
+
+Access groups
+
+Access groups are used for the sole purpose of providing access. They represent job functions and are used to simplify the assignment of roles required to perform these job functions. Instead of granting roles to individual principals, you grant roles to the group, and then manage group membership.
+
+The structure of access groups is influenced by the structure of the resources or workloads in your organization. The deployment of a new resource or workload might require the creation of new access groups.
+
+Membership in access groups is generally controlled by one or more group owners, who either invite users to the group or approve users' requests to join the group.
+
+Some examples of access groups include access.prod-firewall-admins, access.finance-datamart-viewers, and access.billing-dashboard-users.
+
+Access groups are used only to provide access. They are not used for communication purposes.
+
+Enforcement groups
+
+Enforcement groups are similar to access groups, except that they're used to enforce access restriction policies rather than providing access.
+
+The structure of enforcement groups is typically influenced by a combination of compliance requirements and organizational structure.
+
+Membership in an enforcement group is typically determined by a set of predefined rules that look at a user's clearance level, location, or role in the organization.
+
+Some examples of enforcement groups include enforcement.users-in-restricted-locations, enforcement.fedramp-low, and enforcement.sso-users.
+
+Enforcement groups are used only to enforce access restriction policies. They are not used for communication purposes.
+
+Name your groups to reflect their type
+
+To help you follow the best practices in the rest of this document, use group names that let you determine the type of a group from its name. You can use a naming convention or secondary domains.
+
+Naming convention
+
+Here is one example of a naming convention to make the group type visible:
+
+Organizational groups: org.GROUP_NAME@example.com. For example, org.finance-all@example.com.
+
+Collaboration groups: collab.TEAM_NAME@example.com. For example, collab.msmiths-team@example.com.
+
+Access groups: access.JOB_FUNCTION@example.com. For example, access.billing-dashboard-users@example.com.
+
+Enforcement groups: enforcement.GROUP_DESCRIPTION@example.com. For example, enforcement.sso-users@example.com.
+
+Adopt the convention that works for your organization and is supported by your group management software. Using a prefix alphabetizes your groups by function, but some group management systems, such as Groups for Business, support only suffixes. If you can't use prefixes, you can use suffixes or secondary domains.
+
+Secondary domains
+
+As an alternative to naming conventions, you can use secondary domains to embed the group type into the name—for example, access.example.com. Secondary domains that are a subdomain of a verified domain don't require verification and don't need to exist in DNS. Furthermore, by not creating DNS Mail Exchange (MX) records for the secondary domains, you can block inbound emails from coming to groups that aren't intended for communication.
+
+Nesting rules
+
+Different types of groups have different rules for whether nesting (accepting a group as a member) is allowed.
+
+Nesting rules for organizational groups
+
+Nesting organizational groups to reflect your org chart is a best practice. This approach means that every employee is included in one group and then the groups include each other. For example, the org.finance-all group might contain the groups org.finance-us, org.finance-germany, and org.finance-australia as members.
+
+You can add organizational groups to any of the other group types as members. This can be much easier than having to add every member of an organizational group to another group.
+
+Don't add any other group type to an organizational group as a member. Don't use access, enforcement, or collaboration groups as part of an organizational hierarchy.
+
+Nesting rules for collaboration groups
+
+Every collaboration group should have a well-defined set of policies that determine how members are added. If two collaboration groups follow the same membership policies, they can be nested. However, nesting collaboration groups with different membership policies can let members that don't meet the membership policies of a group become members. Review the membership policies carefully before nesting collaboration groups.
+
+Collaboration groups can have organizational groups as members.
+
+Nesting rules for access groups
+
+Typically, you shouldn't nest access groups. Nesting access groups can make it difficult to determine who has access to what resources. Additionally, nesting access groups with different access policies might let principals bypass strict access group membership policies.
+
+Access groups can have organizational groups as members.
+
+Nesting rules for enforcement groups
+
+Don't nest enforcement groups. Nesting enforcement groups can make it difficult to determine why a principal is being denied access. Additionally, nesting enforcement groups with different membership policies might cause some principals to be affected by unintended restrictions.
+
+Enforcement groups can have organizational groups as members.
+
+Manage organizational groups
+
+Use the following best practices to manage your organizational groups.
+
+Provision from a single source of truth
+
+Because organizational groups are based on human resources data, it's best to provision these groups exclusively from a human resources information system or from an external source of truth—for example, an external identity provider (IdP) or an identity governance system such as Sailpoint, Okta, or Entra ID.
+
+Don't allow group modifications
+
+Don't add or remove users from an organizational group manually, and don't let users remove themselves from an organizational group.
+
+Note: Preventing users from leaving a Google group requires changing a default setting by using the Groups Settings API to set the whoCanLeaveGroup property to NONE_CAN_LEAVE.
+
+Avoid using organizational groups to provide access to resources
+
+All users in an organizational group rarely need the same level of access to resources. For this reason, granting access to an organizational group is likely to result in some members of the group having more access than they actually need.
+
+In addition, there can be a delay between when changes are made in an external IdP and when they are propagated to Cloud Identity, based on the synchronization frequency from the external IdP to Cloud Identity. This delay can lead to the proliferation of excess permissions. For example, it might lead resource owners to grant access to existing groups instead of creating a new group, even if those existing groups contain people who don't need to access the resource.
+
+If you must provide access using an organizational group, add the organizational group as a member to an access group, rather than granting access directly, and only grant roles with limited permissions, such as Organization Viewer. Otherwise, use access groups to provide access to resources.
+
+Don't allow service accounts and external users in organizational groups
+
+Don't include service accounts in organizational groups, because they don't represent people.
+
+External users—users from a different Google Workspace or Cloud Identity account—typically aren't part of your organization, so there's no reason for them to be a member of an organizational group. If you onboard your external workforce to your own Google Workspace or Cloud Identity account, then they are considered internal users, and can be included in your organizational groups.
+
+Use Cloud Identity security groups and group restrictions to enforce these rules.
+
+Manage collaboration groups
+
+Use the following best practices to manage your collaboration groups.
+
+Use Groups for Business to manage collaboration groups
+
+If you're using Google Workspace, you can use Groups for Business to manage collaboration groups. This lets users use Google Groups to create, browse, and join groups. You must configure Groups for Business to let users create new collaboration groups.
+
+Disable Groups for Business if you don't use it
+
+If you're using Cloud Identity but not Google Workspace, then there's no reason to have any collaboration groups in Cloud Identity, so it's best to disable Groups for Business to prevent your users from creating groups in Cloud Identity.
+
+Force a suffix for collaboration groups
+
+If you are using Groups for Business, configure it to enforce a suffix. This is especially important if you allow everybody to create new Groups for Business groups.
+
+Enforcing a suffix prevents users from creating a group with a name that intentionally collides with an access group or organizational group that is about to be provisioned from an external source. This scenario could allow the creator of the falsely-named collaboration group to escalate their privileges.
+
+Don't use collaboration groups for access control
+
+Collaboration groups are meant to have loose access control, and typically don't follow a well-defined lifecycle. That makes them good for collaboration, but bad for access control.
+
+If you've strictly followed a naming convention for your collaboration groups, then you can create a custom organization policy constraint to prevent collaboration groups from being granted IAM roles.Similarly, if you provision and manage your collaboration groups externally, then don't provision them to Cloud Identity, which would let them be misused for access control purposes.
+
+Manage access groups
+
+Use the following best practices to manage your access groups.
+
+Select the right tool to manage your access groups
+
+Because access groups are managed by workload owners, use a tool suited to self-service. Your tool should let users find existing access groups, and enforce security guardrails that apply the following controls:
+
+Who (members of which organizational group) is eligible to join an access group
+
+What requirements must be met for a user to join a group
+
+For example, do users need to provide justification?
+
+Maximum lifetime for group membership
+
+If membership must be approved, and by who
+
+Audit trail support
+
+One tool that fits these requirements is JIT Groups.
+
+Use access groups to model job functions and grant access to resources
+
+Create an access group for each job function and grant it access to all resources that users in that job function need. Then, you can add users in that job function to the group to give them the access they need instead of granting the same roles to each individual user.
+
+You can use a single access group to provide access to multiple resources, or even multiple projects. However, make sure that each group member needs the access that you grant to the group. If some users don't need the additional access, create a new access group and grant that group the additional access instead.
+
+Use your access groups for a specific workload
+
+Reusing access groups for multiple workloads leads to excessive permissioning and administration complexity.
+
+Remove barriers to creating access groups for workload owners
+
+To reduce the temptation to reuse an existing access group, make access groups straightforward to create and maintain. Workload owners should be able to create access groups on a self-service basis, with support for proper naming.
+
+Empower users to find and join access groups
+
+If users can discover existing access groups and join the ones they need, they will be less likely to accumulate unneeded privileges. If needed, you can use an invitation or approval process to control who can join the group.
+
+Let memberships auto-expire by default
+
+Require users to re-join an access group or extend their membership after a period of time. This practice intentionally adds friction to remain a member of an access group, and creates an incentive to let unneeded memberships lapse. This best practice is critical for achieving the goal of Zero Standing Privileges (ZSP), and is especially important for external users.
+
+Don't apply this rule to service accounts, however, because removing service accounts from an access group can result in service interruptions.
+
+Give each group designated owners
+
+Every access group should have one or more designated owners. This encourages a sense of responsibility for group membership. The owners can be the same person or team that owns the workload associated with the group.
+
+Limit visibility of access groups
+
+Don't make access groups visible in the Groups directory. (They should be discoverable in your access group management tool.) In addition, allow only group members the ability to see who else is a member. These practices prevent bad actors from gaining valuable information.
+
+Limit external members
+
+Because domain-restricted sharing (DRS) policy constraints apply to groups, but not to group members, access groups that allow external members can create a loophole that undermines DRS.
+
+Use Cloud Identity security groups and group restrictions to allow or disallow external members for access groups. In addition, consider using a special naming convention, such as external.access.GROUP_NAME@example.com, for access groups that allow external members.
+
+Manage enforcement groups
+
+Use the following best practices to manage your enforcement groups.
+
+Select the right tool to manage your enforcement groups
+
+Because membership in enforcement groups is based on organizational rules, and used to apply security restrictions, don't let members opt out or remove themselves from an enforcement group.
+
+Using dynamic groups lets you automate enforcement group provisioning. If you're using an external IdP, use the dynamic groups provided by the IdP and then provision them to Cloud Identity. Keep in mind that using an external IdP can introduce a delay for policy updates.
+
+If you can't use dynamic groups, consider using Terraform or some other Infrastructure as Code (IaC) tool to provision your enforcement groups. If you use IaC to create enforcement groups, make sure you don't give unnecessarily broad access to the pipeline.
+
+Use enforcement groups for mandatory access control and authentication controls
+
+Use access groups to enforce mandatory access control. Google Cloud supports mandatory access control with a number of services and tools, including the following:
+
+IAM deny policies
+
+IAM principal access boundary policies
+
+Chrome Enterprise Premium access bindings
+
+Google Workspace service turn off
+
+Enforcement groups are also used to apply authentication controls such as SAML profile assignment or 2-Step Verification (2SV).
+
+Because these controls all restrict features or remove access, enforcement groups are the right choice.
+
+Don't allow users to leave an enforcement group
+
+Allowing users to leave an enforcement group goes against the principles of mandatory access control. To disallow users from leaving the group, use the Groups Settings API to set the whoCanLeaveGroup property to NONE_CAN_LEAVE.
+
+Best practices for external IdPs
+
+If you're using an external IdP for authentication, then it can be useful to also use that IdP for provisioning organizational groups and enforcement groups.
+
+Avoid using an external source for access groups
+
+It's possible to manage access groups in the external IdP and provision them to Cloud Identity, but there are several disadvantages to this approach:
+
+Provisioning delays
+
+It can take up to several hours for changes made in the external IdP to be reflected in the access group.
+
+Risk of divergence
+
+Some IdPs don't take authoritative control of groups. For example, they might not delete a group in Cloud Identity after it's deleted externally, or actively delete group members that exist in Cloud Identity but not in the IdP.
+
+Divergence can cause users to retain access they don't need, and gives them incorrect information about who has access. It can also add friction to creating access groups.
+
+To avoid these pitfalls, use external IdPs to provision only organizational and enforcement groups, and use a tool such as JIT Groups to manage access groups directly in Cloud Identity.
+
+Use a secondary domain if you're mapping groups by name
+
+Cloud Identity identifies groups by email address, but groups in your external IdP might not have an email address.
+
+Many IdPs let you work around this by letting you derive a pseudo email address from the group's name, such as using my-group@example.com. This works, but can lead to collisions when this email address is already used by a different group or user. In the worst case, this naming collision could be exploited by a bad actor to create security groups that masquerade as another, less scrutinized group type.
+
+To avoid the risk of collisions, use a dedicated secondary domain for groups that you provision from the external source, such as groups.example.com.
+
+Avoid granting the Groups Admin role to deployment pipelines
+
+If you use IaC to manage groups (for example, Terraform), your deployment pipeline must have the required permissions to accomplish its task. The Groups Admin role authorizes group creation, but it also lets any principal with that role manage all groups in the Cloud Identity account.
+
+You can restrict the access given to a pipeline by creating a service account with just one permission (the ability to create a group) and then by making the pipeline the owner of any group it creates. That lets that pipeline manage any group it creates, and create more groups, without authorizing it to manage any group it did not create.
+
+The following steps outline this approach:
+
+Create a custom admin role that includes only the Admin API group create permission.
+
+Give this role a descriptive name, such as Group Creator.
+
+Create a service account and assign it the Group Creator role.
+
+Use the service account for your pipeline and pass the WITH_INITIAL_OWNER flag at group creation time.
+
+Use Cloud Logging to audit and monitor your groups.
+
+Logging lets you collect, monitor, and analyse group activity.
+
+Audit membership changes
+
+Adding or removing a member of an organizational group, access group, or enforcement group can affect what resources the member has access to, so it's important to keep an audit trail that tracks these changes.
+
+Require justifications for joining access groups
+
+To make your monitoring data more useful, require users to provide a justification when they join a group, or request to join a group, and log the justification. If there is an approval process, log details about who approved the request.
+
+This additional metadata can later help you analyze why somebody was added to a group and by extension, why they were given access to certain resources.
+
+Enable Cloud Identity audit log sharing
+
+Configure Cloud Identity to route logs to Cloud Logging so that you can handle these audit logs the same way as other Google Cloud logs, including setting up alerts or use an external Security information and event management (SIEM) system.
+
+
+
+
+
+
+
+
+
