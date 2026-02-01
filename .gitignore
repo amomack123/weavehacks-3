@@ -1,3 +1,19 @@
+# Environment variables (contains secrets)
 .env
-.venv
-__pycache__
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS files
+.DS_Store
