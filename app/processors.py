@@ -46,13 +46,20 @@ class RewardProcessor(FrameProcessor):
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         """Process incoming frames to detect feedback and update rewards"""
         
+        # Let parent class handle StartFrame and other lifecycle frames first
+        from pipecat.frames.frames import StartFrame, EndFrame, CancelFrame
+        if isinstance(frame, (StartFrame, EndFrame, CancelFrame)):
+            await super().process_frame(frame, direction)
+            return
+        
+        # Process ActionFeedbackFrame if applicable
         if isinstance(frame, ActionFeedbackFrame):
             logger.info(f"Received feedback for action {frame.action_id}: success={frame.success}")
             
-            # 1. Calculate reward based on success and user delta (distance to target)
+            # Calculate reward based on success and user delta (distance to target)
             reward = 1.0 if frame.success and frame.user_delta < 50 else -1.0
             
-            # 2. Update Episodic Memory / Reward Store
+            # Update Episodic Memory / Reward Store
             await self._update_reward_store(frame.action_id, reward, frame.metadata)
             
             # Log event for analytics
@@ -61,8 +68,8 @@ class RewardProcessor(FrameProcessor):
                 "reward": reward,
                 "delta": frame.user_delta
             })
-            
-        # Continue pushing frames through the pipeline (Pipecat 0.0.x style)
+        
+        # Pass all frames downstream
         await self.push_frame(frame, direction)
 
     # async def _update_reward_store(self, action_id: str, reward: float, metadata: dict):
