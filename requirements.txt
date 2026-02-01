@@ -1,9 +1,13 @@
+# =============================================================================
+# GCP Assistant - Requirements
+# =============================================================================
+
 # Core API
 fastapi>=0.109.0
 uvicorn[standard]>=0.27.0
 python-multipart>=0.0.6
 
-# Redis
+# Redis & Vector Store
 redis>=5.0.0
 redisvl>=0.2.0
 
@@ -11,7 +15,7 @@ redisvl>=0.2.0
 langchain>=0.1.0
 langchain-community>=0.0.20
 langchain-google-genai>=1.0.0
-langchain-openai>=0.0.5
+langchain-text-splitters>=0.0.1
 google-generativeai>=0.3.0
 
 # Observability
@@ -20,3 +24,12 @@ weave>=0.50.0
 # Utilities
 python-dotenv>=1.0.0
 numpy>=1.24.0
+
+# Image Processing & Hashing
+Pillow>=10.0.0
+imagehash>=4.3.0
+
+# Pipecat Voice Bot
+pipecat-ai[daily,deepgram,cartesia,elevenlabs,silero]>=0.0.100
+aiohttp>=3.9.0
+loguru>=0.7.0
