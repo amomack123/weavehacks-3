@@ -1,0 +1,47 @@
+[project]
+name = "pipecat-voice-agent"
+version = "0.1.0"
+description = "Conversational AI voice agent with Pipecat, Deepgram, OpenAI, and Cartesia/Silero"
+requires-python = ">=3.10"
+dependencies = [
+    "pipecat-ai>=0.0.50",
+    "deepgram-sdk>=3.0.0",
+    "openai>=1.0.0",
+    "cartesia>=1.0.0",
+    "silero-vad>=4.0.0",
+    "torch>=2.0.0",
+    "torchaudio>=2.0.0",
+    "websockets>=12.0",
+    "aiohttp>=3.9.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+]
+vision = [
+    "mss>=9.0.0",
+    "pyautogui>=0.9.54",
+    "pillow>=10.0.0",
+    "opencv-python>=4.8.0",
+    # Uncomment when implementing SAM integration:
+    # "segment-anything>=1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
