@@ -43,7 +43,7 @@ INDEX_NAME = "iam_rules"
 KNOWLEDGE_PREFIX = "kg:gcp:iam:"
 
 # Initialize Weave for observability
-# weave.init("gcp-assistant-rag")
+weave.init("gcp-assistant-rag")
 
 
 # =============================================================================

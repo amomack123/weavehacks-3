@@ -29,7 +29,7 @@ from brain import retrieve_iam_steps, update_step_reward, get_step_stats
 load_dotenv()
 
 # Initialize Weave for observability
-# weave.init("gcp-assistant-rag")
+weave.init("gcp-assistant-rag")
 
 # Create FastAPI app
 app = FastAPI(

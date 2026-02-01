@@ -72,7 +72,7 @@ from pipecat.transports.daily.utils import DailyRESTHelper, DailyRoomParams
 load_dotenv(override=True)
 
 # Initialize Weave
-# weave.init("gcp-assistant-rag")
+weave.init("gcp-assistant-rag")
 
 # Configuration
 BRAIN_API_URL = os.getenv("BRAIN_API_URL", "http://localhost:8000")
