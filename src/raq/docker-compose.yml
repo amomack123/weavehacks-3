@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_API_KEY=${AIzaSyB2vK1yX2hXRsQIhaJDlGNeFyYtFv-7uvY}
       - REDIS_HOST=redis
       - WANDB_API_KEY=${WANDB_API_KEY}
     depends_on:

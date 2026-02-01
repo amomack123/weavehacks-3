@@ -57,25 +57,48 @@ def get_current_screen_hash() -> str:
     # Placeholder for vision team logic
     return "current_screen_sha256"
 
-def build_system_prompt(template: str) -> str:
+def build_system_prompt(template: str, user_query: str = "") -> str:
     """
     Final Aggregator: Combine Knowledge (RAG) + Episodic Memory (RL)
+    
+    Args:
+        template: System prompt template with {rag_context} placeholder
+        user_query: Optional user query for vector search (if empty, uses global context)
     """
-    # 1. Get Domain Knowledge (from Redis Vector Search)
-    domain_knowledge = get_rag_context()
+    from .redis_client import query_knowledge_base, get_learned_action
     
-    # 2. Get Episodic Knowledge (Placeholder for learned success)
-    # screen_hash = get_current_screen_hash()
-    # In production, this pulls from Redis based on intent + screen_hash
-    best_move = "Coord(450, 200)"
-    
-    episodic_memory = f"LEARNED STRATEGY: Historically, coordinate {best_move} was successful here."
+    # 1. Get Domain Knowledge from Redis Vector Search
+    if user_query:
+        # Use vector search for specific query
+        domain_knowledge = query_knowledge_base(user_query, top_k=2)
+    else:
+        # Fall back to global RAG context
+        domain_knowledge = get_rag_context()
     
     if not domain_knowledge or domain_knowledge.strip() == "":
         domain_knowledge = "No specific context provided."
     
+    # 2. Get Episodic Knowledge (Learned Actions from RL)
+    # Note: This requires screen_hash and intent from the current conversation context
+    # For now, we use a placeholder. In production, you would:
+    # - Get screen_hash from vision_hooks.hash_screen()
+    # - Extract intent from the LLM's understanding
+    
+    episodic_memory = ""
+    try:
+        # Example: get_learned_action(screen_hash, intent)
+        # best_action = get_learned_action("current_hash", "user_intent")
+        # if best_action:
+        #     episodic_memory = f"LEARNED STRATEGY: Click target {best_action['best_mask_id']} (confidence: {best_action['score']:.2f})"
+        
+        # Placeholder until we wire screen capture + intent extraction
+        episodic_memory = "No learned strategies for this context yet."
+    except Exception as e:
+        logger.error(f"Failed to retrieve episodic memory: {e}")
+        episodic_memory = ""
+    
     # 3. Inject Combined Intelligence into Template
-    context_block = f"{domain_knowledge}\n\n{episodic_memory}"
+    context_block = f"{domain_knowledge}\n\n{episodic_memory}" if episodic_memory else domain_knowledge
     
     prompt = template.format(rag_context=context_block)
     logger.debug("Successfully aggregated RAG + RL for System Prompt")

@@ -17,3 +17,7 @@ venv/
 
 # OS files
 .DS_Store
+
+# Generated files
+dump.rdb
+logs/

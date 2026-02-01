@@ -178,7 +178,7 @@ def ingest_iam_knowledge() -> dict:
 
 if __name__ == "__main__":
     # Initialize Weave for W&B observability
-    weave.init("gcp-assistant-rag")
+    # weave.init("gcp-assistant-rag") 
     
     # Run the ingestion pipeline
     result = ingest_iam_knowledge()

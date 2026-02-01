@@ -17,12 +17,14 @@ load_dotenv()
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 CARTESIA_API_KEY = os.getenv("CARTESIA_API_KEY")
+DAILY_API_KEY = os.getenv("DAILY_API_KEY")  # For Daily Transport
 
 # ============================================
-# WEBSOCKET CONFIGURATION
+# DAILY TRANSPORT CONFIGURATION
 # ============================================
 
-WEBSOCKET_URL = os.getenv("WEBSOCKET_URL", "ws://localhost:8000/ws")
+DAILY_ROOM_URL = os.getenv("DAILY_ROOM_URL")  # Set at runtime when creating room
+DAILY_BOT_NAME = os.getenv("DAILY_BOT_NAME", "GCP Assistant")
 
 # ============================================
 # MODEL CONFIGURATION
