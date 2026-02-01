@@ -5,7 +5,7 @@ description = "Conversational AI voice agent with Pipecat, Deepgram, OpenAI, and
 requires-python = ">=3.10"
 dependencies = [
     "pipecat-ai>=0.0.50",
-    "deepgram-sdk>=3.0.0",
+    "deepgram-sdk>=4.0.0,<5.0.0",  # Pinned to 4.x for Pipecat 0.0.101 compatibility
     "openai>=1.0.0",
     "cartesia>=1.0.0",
     "silero-vad>=4.0.0",

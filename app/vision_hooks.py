@@ -9,51 +9,42 @@ from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
-# ============================================
-# QWEN2-VL VISION CONTEXT EXTRACTION
-# ============================================
+import base64
+from io import BytesIO
+from mss import mss
+from PIL import Image
 
 async def capture_screen_context() -> str:
     """
-    TEMPLATE: Capture screenshot and extract visual context using Qwen2-VL
-    
-    Implementation steps:
-    1. Take screenshot using mss or pyautogui:
-       ```python
-       from mss import mss
-       with mss() as sct:
-           screenshot = sct.grab(sct.monitors[1])
-           img_data = base64.b64encode(screenshot.rgb)
-       ```
-    
-    2. Encode image to base64
-    
-    3. Send to Qwen2-VL API endpoint:
-       ```python
-       response = await qwen2_vl_client.analyze(
-           image=img_data,
-           prompt="Describe what you see on this screen in detail"
-       )
-       ```
-    
-    4. Extract scene description and key entities
-    
-    5. Return structured context string
-    
-    Example output:
-        "Screen shows: VS Code editor with Python code (main.py), 
-         terminal window running pytest with 5 passing tests,
-         Chrome browser with Pipecat documentation open."
-    
-    Returns:
-        Visual context description (empty string if not implemented)
+    Capture screenshot and extract visual context using Qwen2-VL (Placeholder for API call)
     """
-    # TODO: Implement screen capture
-    # TODO: Call Qwen2-VL API
-    # TODO: Parse and format response
-    
-    logger.debug("capture_screen_context called (not implemented)")
-    return ""
+    try:
+        # 1. Take screenshot using mss
+        with mss() as sct:
+            # Get monitor 1
+            monitor = sct.monitors[1]
+            screenshot = sct.grab(monitor)
+            
+            # Convert to PIL Image for encoding
+            img = Image.frombytes("RGB", screenshot.size, screenshot.bgra, "raw", "BGRX")
+            
+            # Save to buffer
+            buffered = BytesIO()
+            img.save(buffered, format="JPEG", quality=85)
+            img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            
+            logger.debug(f"Screenshot captured: {len(img_base64)} bytes (base64)")
+
+        # 2. TEMPLATE: Send to Qwen2-VL API
+        # This is where you would call your vision model
+        # response = await qwen2_vl_client.analyze(image=img_base64)
+        
+        # For now, return a placeholder or OCR if you add it
+        return "Screen shows: Active Desktop (Real screenshot captured, awaiting Qwen2-VL integration)"
+
+    except Exception as e:
+        logger.error(f"Failed to capture screen: {e}")
+        return ""
 
 
 # ============================================
